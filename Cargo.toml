@@ -1,0 +1,16 @@
+[package]
+name = "pushenv"
+version = "0.1.0"
+edition = "2021"
+description = "A CLI utility that reads a .env file before starting a process"
+license-file = "LICENSE.txt"
+
+[[bin]]
+name = "pushenv"
+path = "src/main.rs"
+
+[dependencies]
+dotenv = "0.15.0"
+clap = { version = "4.5.4", features = ["derive"] }
+thiserror = "1.0.59"
+
