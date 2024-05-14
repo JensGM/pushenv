@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "A CLI utility that reads a .env file before starting a process"
 license-file = "LICENSE.txt"
+repository = "https://github.com/JensGM/pushenv"
 
 [[bin]]
 name = "pushenv"
