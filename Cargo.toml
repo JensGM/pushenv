@@ -1,8 +1,14 @@
 [package]
 name = "pushenv"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
-description = "A CLI utility that reads a .env file before starting a process"
+description = """
+A CLI utility that reads a .env file before starting a process.
+
+Example usage:
+  pushenv -- echo $SOME_VAR
+  pushenv some.env.file -- echo $SOME_VAR
+"""
 repository = "https://github.com/JensGM/pushenv"
 license = "GPL-3.0"
 license-file = "LICENSE"
