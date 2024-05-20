@@ -37,7 +37,11 @@ jobs:
 
   publish:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [test-macos, test-linux, test-windows]
+    needs:
+      - test-macos
+      - test-linux
+      - test-windows
+      - release-binaries
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
