@@ -76,7 +76,7 @@ mod tests {
     #[rstest::rstest]
     #[case(None)]
     #[case(Some("some.env.file"))]
-    fn test_pushenv_without_explicit_envfile(#[case] envfile_name: Option<&str>) {
+    fn test_pushenv(#[case] envfile_name: Option<&str>) {
         let dir = tempfile::tempdir().unwrap();
         let envfile = dir.path().join(envfile_name.unwrap_or(".env"));
         create_envfile(&envfile);
