@@ -50,7 +50,9 @@ jobs:
       - test-macos
       - test-linux
       - test-windows
-      - release-binaries
+      - release-binaries-macos
+      - release-binaries-linux
+      - release-binaries-windows
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -61,7 +63,6 @@ jobs:
         run: cargo publish
 
   build-macos:
-    if: startsWith(github.ref, 'refs/tags/')
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -71,14 +72,16 @@ jobs:
         with: { shared-key: macos-release-build, cache-on-failure: true }
       - name: Build binary
         run: cargo build --release
+      - name: Tarball binary
+        run: tar -czvf target/release/pushenv-macos.tar.gz -C target/release pushenv
       - name: Upload artifact
         uses: actions/upload-artifact@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           name: pushenv-macos
-          path: target/release/pushenv
+          path: target/release/pushenv-macos.tar.gz
 
   build-linux:
-    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -88,14 +91,16 @@ jobs:
         with: { shared-key: linux-release-build, cache-on-failure: true }
       - name: Build binary
         run: cargo build --release
+      - name: Tarball binary
+        run: tar -czvf target/release/pushenv-linux.tar.gz -C target/release pushenv
       - name: Upload artifact
         uses: actions/upload-artifact@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           name: pushenv-linux
-          path: target/release/pushenv
+          path: target/release/pushenv-linux.tar.gz
 
   build-windows:
-    if: startsWith(github.ref, 'refs/tags/')
     runs-on: windows-latest
     steps:
       - name: Checkout repository
@@ -105,20 +110,65 @@ jobs:
         with: { shared-key: windows-release-build, cache-on-failure: true }
       - name: Build binary
         run: cargo build --release
+      - name: Tarball binary
+        run: tar -czvf target/release/pushenv-windows.tar.gz -C target/release pushenv.exe
       - name: Upload artifact
         uses: actions/upload-artifact@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           name: pushenv-windows
-          path: target/release/pushenv.exe
+          path: target/release/pushenv-windows.tar.gz
 
-  release-binaries:
+  release-binaries-macos:
     if: startsWith(github.ref, 'refs/tags/')
     needs:
       - test-macos
-      - test-linux
-      - test-windows
       - build-macos
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: pushenv-macos
+          path: ./artifacts
+      - name: Upload macOS binary to release
+        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-macos.zip --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-binaries-linux:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - test-linux
       - build-linux
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: pushenv-linux
+          path: ./artifacts
+      - name: Upload Linux binary to release
+        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-linux.zip --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-binaries-windows:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - test-windows
       - build-windows
     runs-on: ubuntu-latest
     permissions:
@@ -126,47 +176,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
       - name: Install GitHub CLI
         run: sudo apt-get install gh
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: pushenv-macos
-          path: ./artifacts/macos
-
-      - name: Download Linux artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: pushenv-linux
-          path: ./artifacts/linux
-
       - name: Download Windows artifact
         uses: actions/download-artifact@v2
         with:
           name: pushenv-windows
-          path: ./artifacts/windows
-
-      - name: Archive macOS binary
-        run: zip -j ./artifacts/pushenv-macos.zip ./artifacts/macos/pushenv
-
-      - name: Archive Linux binary
-        run: zip -j ./artifacts/pushenv-linux.zip ./artifacts/linux/pushenv
-
-      - name: Archive Windows binary
-        run: zip -j ./artifacts/pushenv-windows.zip ./artifacts/windows/pushenv.exe
-
-      - name: Upload macOS binary to release
-        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-macos.zip --clobber
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Linux binary to release
-        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-linux.zip --clobber
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          path: ./artifacts
       - name: Upload Windows binary to release
         run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-windows.zip --clobber
         env:
