@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.0
+        with: { shared-key: macos-test, cache-on-failure: true }
       - name: Run tests
         run: cargo build && cargo test
 
@@ -24,6 +27,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.0
+        with: { shared-key: linux-test, cache-on-failure: true }
       - name: Run tests
         run: cargo build && cargo test
 
@@ -32,6 +38,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.0
+        with: { shared-key: windows-test, cache-on-failure: true }
       - name: Run tests
         run: cargo build && cargo test
 
@@ -57,6 +66,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.0
+        with: { shared-key: macos-release-build, cache-on-failure: true }
       - name: Build binary
         run: cargo build --release
       - name: Upload artifact
@@ -71,6 +83,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.0
+        with: { shared-key: linux-release-build, cache-on-failure: true }
       - name: Build binary
         run: cargo build --release
       - name: Upload artifact
@@ -85,6 +100,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.0
+        with: { shared-key: windows-release-build, cache-on-failure: true }
       - name: Build binary
         run: cargo build --release
       - name: Upload artifact
