@@ -1,5 +1,5 @@
-use std::os::unix::process::CommandExt as _;
 use clap::Parser as _;
+use std::os::unix::process::CommandExt as _;
 
 #[derive(clap::Parser, Debug)]
 #[command(name = "pushenv")]
@@ -38,5 +38,37 @@ fn main() -> () {
     if let Err(e) = main2() {
         eprintln!("{}", e);
         std::process::exit(1);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    fn create_envfile(path: &std::path::Path) {
+        use std::io::Write as _;
+        let mut file = std::fs::File::create(path).unwrap();
+        writeln!(file, "TEST_VAR_1=foo").unwrap();
+        writeln!(file, "TEST_VAR_2=bar").unwrap();
+    }
+
+    #[rstest::rstest]
+    #[case(None)]
+    #[case(Some("some.env.file"))]
+    fn test_pushenv_without_explicit_envfile(#[case] envfile_name: Option<&str>) {
+        let dir = tempfile::tempdir().unwrap();
+        let envfile = dir.path().join(envfile_name.unwrap_or(".env"));
+        create_envfile(&envfile);
+
+        let mut cmd = assert_cmd::Command::cargo_bin("pushenv").unwrap();
+        cmd.current_dir(dir.path());
+
+        if let Some(e) = envfile_name {
+            cmd.arg(e);
+        }
+
+        cmd.arg("--").arg("env");
+        cmd.assert()
+            .success()
+            .stdout(predicates::str::contains("TEST_VAR_1=foo"))
+            .stdout(predicates::str::contains("TEST_VAR_2=bar"));
     }
 }
