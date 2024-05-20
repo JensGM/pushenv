@@ -49,7 +49,6 @@ jobs:
 
   build-macos:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [test-macos, test-linux, test-windows]
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -64,7 +63,6 @@ jobs:
 
   build-linux:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [test-macos, test-linux, test-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -79,7 +77,6 @@ jobs:
 
   build-windows:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [test-macos, test-linux, test-windows]
     runs-on: windows-latest
     steps:
       - name: Checkout repository
@@ -94,7 +91,13 @@ jobs:
 
   release-binaries:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [build-macos, build-linux, build-windows]
+    needs:
+      - test-macos
+      - test-linux
+      - test-windows
+      - build-macos
+      - build-linux
+      - build-windows
     runs-on: ubuntu-latest
     permissions:
       contents: write
