@@ -138,7 +138,7 @@ jobs:
           name: pushenv-macos
           path: ./artifacts
       - name: Upload macOS binary to release
-        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-macos.zip --clobber
+        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-macos.tar.gz --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -161,7 +161,7 @@ jobs:
           name: pushenv-linux
           path: ./artifacts
       - name: Upload Linux binary to release
-        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-linux.zip --clobber
+        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-linux.tar.gz --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -184,6 +184,6 @@ jobs:
           name: pushenv-windows
           path: ./artifacts
       - name: Upload Windows binary to release
-        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-windows.zip --clobber
+        run: gh release upload "${{ github.ref_name }}" ./artifacts/pushenv-windows.tar.gz --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
