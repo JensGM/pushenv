@@ -1,5 +1,4 @@
 use clap::Parser as _;
-use std::os::unix::process::CommandExt as _;
 
 #[derive(clap::Parser, Debug)]
 #[command(name = "pushenv")]
@@ -20,6 +19,31 @@ enum PushEnvError {
     MissingCommand,
 }
 
+#[cfg(unix)]
+fn exec(cmd: &str, args: &[String]) -> Result<(), PushEnvError> {
+    use std::os::unix::process::CommandExt as _;
+    let err = std::process::Command::new(cmd).args(args).exec();
+    Err(err.into())
+}
+
+#[cfg(windows)]
+fn exec(cmd: &str, args: &[String]) -> Result<(), PushEnvError> {
+    let status = std::process::Command::new(cmd)
+        .args(args)
+        .stdin(std::process::Stdio::inherit())
+        .stdout(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::inherit())
+        .status()?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(PushEnvError::Io(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Command failed with status: {}", status),
+        )))
+    }
+}
+
 fn main2() -> Result<(), PushEnvError> {
     let args = Cli::parse();
     dotenv::from_filename(args.envfile.unwrap_or(".env".to_string()))?;
@@ -30,8 +54,7 @@ fn main2() -> Result<(), PushEnvError> {
     };
 
     let args = &args.cmd[1..];
-    let err = std::process::Command::new(cmd).args(args).exec();
-    Err(PushEnvError::Io(err))
+    exec(cmd, args)
 }
 
 fn main() -> () {
