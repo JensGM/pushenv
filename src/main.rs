@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 use clap::Parser as _;
 
 #[derive(clap::Parser, Debug)]
@@ -6,7 +7,7 @@ use clap::Parser as _;
 struct Cli {
     envfile: Option<String>,
     #[clap(last = true)]
-    cmd: Vec<String>,
+    cmd: Vec<OsString>,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -20,14 +21,14 @@ enum PushEnvError {
 }
 
 #[cfg(unix)]
-fn exec(cmd: &str, args: &[String]) -> Result<(), PushEnvError> {
+fn exec(cmd: &OsString, args: &[OsString]) -> Result<(), PushEnvError> {
     use std::os::unix::process::CommandExt as _;
     let err = std::process::Command::new(cmd).args(args).exec();
     Err(err.into())
 }
 
 #[cfg(windows)]
-fn exec(cmd: &str, args: &[String]) -> Result<(), PushEnvError> {
+fn exec(cmd: &OsString, args: &[OsString]) -> Result<(), PushEnvError> {
     let status = std::process::Command::new(cmd)
         .args(args)
         .stdin(std::process::Stdio::inherit())
@@ -44,23 +45,12 @@ fn exec(cmd: &str, args: &[String]) -> Result<(), PushEnvError> {
     }
 }
 
-fn main2() -> Result<(), PushEnvError> {
+fn main() -> Result<(), PushEnvError> {
     let args = Cli::parse();
     dotenv::from_filename(args.envfile.unwrap_or(".env".to_string()))?;
-
-    let cmd = match args.cmd.first() {
-        Some(cmd) => cmd,
-        None => return Err(PushEnvError::MissingCommand),
-    };
-
-    let args = &args.cmd[1..];
-    exec(cmd, args)
-}
-
-fn main() -> () {
-    if let Err(e) = main2() {
-        eprintln!("{}", e);
-        std::process::exit(1);
+    match args.cmd.as_slice() {
+        [cmd, args@..] => exec(cmd, args),
+        _ => Err(PushEnvError::MissingCommand),
     }
 }
 
